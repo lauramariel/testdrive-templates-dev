@@ -1,0 +1,356 @@
+{
+	"resource_specs": {
+		"tdaas_vpc": {
+			"type": "$NETWORK",
+			"region": "us-west1",
+			"subnet_range": "172.19.0.0/16",
+			"is_new": true,
+			"name": "on-prem-nw"
+		},
+		"managed_network": {
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"dependencies": [
+				"tdaas_cluster",
+				"tdaas_vpc"
+			],
+			"type": "$MANAGED_NETWORK",
+			"is_new": true,
+			"name": "on-prem-managed-network",
+			"networks": [{
+				"cidr": "$AUTO",
+				"vlan_id": "1",
+				"name": "default-net",
+				"virtual_ip": false,
+        "internet_forwarding": true
+
+			}],
+			"labels": {}
+		},
+		"tdaas_cluster": {
+			"is_new": true,
+			"type": "$NOS_CLUSTER",
+			"dependencies": [
+				"tdaas_vpc"
+			],
+			"region": "us-west1",
+			"labels": {},
+			"zone": "us-west1-c",
+			"provider": {
+				"host": "tdaas_vpc"
+			},
+			"hardware": {
+				"min_ssd_count": 4,
+				"cluster_min_nodes": 1,
+				"min_host_gb_ram": 81,
+				"min_host_cpu_count": 30,
+				"svm_num_vcpus": 8,
+				"svm_gb_ram": 16
+			},
+			"software": {
+				"nos": {
+					"version": "euphrates-5-11-stable",
+					"build_type": "opt",
+					"build_url": "http://endor.dyn.nutanix.com/builds/nos-builds/master/1ce0a2fb9acdf27a89847662c5c0a42a395db41f/opt/tar/nutanix_installer_package-opt-master-1ce0a2fb9acdf27a89847662c5c0a42a395db41f.tar.gz",
+					"commit": "7d9581"
+				},
+				"hypervisor": {
+					"build_url": "http://endor.dyn.nutanix.com/builds/ahv-builds/20170830.100789/host-bundle-el6.nutanix.20170830.100789.tar.gz",
+					"type": "kvm"
+				}
+			}
+		},
+		"files":{
+			"kind":"$AFS",
+			"type":"$POST_DEPLOYMENT",
+			"dependencies":["tdaas_vpc","tdaas_cluster","managed_network"]
+		},
+		"pe_reset_password": {
+			"type": "$POST_DEPLOYMENT",
+			"kind": "$RESET_PRISM_PASS",
+			"dependencies": [
+				"tdaas_cluster",
+				"pe_post_deployment",
+				"entity-creation"
+			],
+			"kwargs": {
+				"target": {
+					"res_name": "tdaas_cluster"
+				}
+			}
+		},
+		"pe_post_deployment": {
+			"type": "$POST_DEPLOYMENT",
+			"kind": "$PE_CLOUD_CORE",
+			"dependencies": [
+				"tdaas_cluster",
+				"managed_network",
+				"registration_link_pe_1-_pc_1"
+			]
+		},
+		"registration_link_pe_1-_pc_1": {
+			"dependencies": [
+				"tdaas_vpc",
+				"tdaas_pc",
+				"tdaas_cluster"
+			],
+			"type": "$REGISTER_PE_PC"
+		},
+		"tdaas_pc": {
+			"type": "$PRISM_CENTRAL",
+			"is_new": true,
+			"dependencies": [
+				"tdaas_vpc"
+			],
+			"labels": {},
+			"hardware": {
+				"min_vcpus": 8,
+				"min_ram": 16
+			},
+			"region": "us-west1",
+			"zone": "us-west1-c",
+			"provider": {
+				"host": "tdaas_vpc"
+			},
+			"software": {
+				"prism_central": {
+					"build_url": "pc-upgrade-tars/nutanix_installer_package_pc-release-euphrates-5.11-stable-7d9581dabffc9bf074def3950d29841cfc0dce71.tar.gz"
+				}
+			}
+		},
+		"pc_reset_password": {
+			"type": "$POST_DEPLOYMENT",
+			"kind": "$RESET_PRISM_PASS",
+			"dependencies": [
+				"tdaas_pc",
+				"registration_link_pe_1-_pc_1",
+				"pc_selfservice_postd",
+				"entity-creation"
+			],
+			"kwargs": {
+				"target": {
+					"res_name": "tdaas_pc"
+				}
+			}
+		},
+		"pc_selfservice_postd": {
+			"type": "$POST_DEPLOYMENT",
+			"kind": "$PC_CLOUD_CORE",
+			"dependencies": [
+				"tdaas_pc",
+				"pe_post_deployment"
+			]
+		},
+		"xi-nw": {
+			"region": "us-west1",
+			"type": "$NETWORK",
+			"subnet_range": "172.20.0.0/16",
+			"is_new": true,
+			"name": "xi-nw"
+		},
+		"xi-cluster": {
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"is_new": true,
+			"set_cluster_external_ip_address": true,
+			"type": "$NOS_CLUSTER",
+			"dependencies": [
+				"xi-nw"
+			],
+			"labels": {},
+			"provider": {
+				"host": "xi-nw"
+			},
+			"hardware": {
+				"min_ssd_count": 1,
+				"cluster_min_nodes": 1,
+				"min_host_gb_ram": 20,
+				"min_host_cpu_count": 8,
+				"svm_num_vcpus": 8,
+				"svm_gb_ram": 16
+			},
+			"software": {
+				"nos": {
+					"version": "euphrates-5-11-stable",
+					"build_type": "opt",
+					"build_url": "http://endor.dyn.nutanix.com/builds/nos-builds/master/1ce0a2fb9acdf27a89847662c5c0a42a395db41f/opt/tar/nutanix_installer_package-opt-master-1ce0a2fb9acdf27a89847662c5c0a42a395db41f.tar.gz",
+					"commit": "7d9581"
+				},
+				"hypervisor": {
+					"version": "20180802-209",
+					"build_url": "http://endor.dyn.nutanix.com/builds/ahv-builds/20170830.100789/host-bundle-el6.nutanix.20170830.100789.tar.gz",
+					"type": "kvm"
+				}
+			},
+			"name": "xi-cluster"
+		},
+		"xi-pc": {
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"labels": {},
+			"is_new": true,
+			"hardware": {
+				"min_ram": 16,
+				"min_vcpus": 8
+			},
+			"xi": {
+				"host": "xi-nw"
+			},
+			"dependencies": [
+				"xi-nw",
+				"xi-cluster"
+			],
+			"provider": {
+				"host": "xi-nw"
+			},
+			"type": "$PRISM_CENTRAL",
+			"software": {
+				"prism_central": {
+					"build_url": "pc-upgrade-tars/nutanix_installer_package_pc-release-euphrates-5.11-stable-7d9581dabffc9bf074def3950d29841cfc0dce71.tar.gz"
+				}
+			},
+			"name": "xi-pc"
+		},
+		"xi-managed-network": {
+			"type": "$MANAGED_NETWORK",
+			"is_new": true,
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"networks": [{
+				"cidr": "$AUTO",
+				"vlan_id": 1,
+				"name": "default-net",
+				"virtual_ip": false
+			}],
+			"dependencies": [
+				"xi-cluster",
+				"xi-nw"
+			],
+			"name": "xi-managed-network"
+		},
+		"xi-pe-pc-registration": {
+			"dependencies": [
+				"xi-nw",
+				"xi-pc",
+				"xi-cluster"
+			],
+			"type": "$REGISTER_PE_PC",
+			"name": "xi-pe-pc-registration"
+		},
+		"xi-calm": {
+			"type": "$POST_DEPLOYMENT",
+			"kind": "$ENABLE_CALM",
+			"dependencies": [
+				"xi-nw",
+				"xi-pc",
+				"xi-managed-network",
+				"xi-cluster",
+				"xi-pe-pc-registration"
+			],
+			"name": "xi-calm"
+		},
+		"vpc-peering": {
+			"type": "$VPC_PEERING",
+			"dependencies": [
+				"tdaas_vpc",
+				"xi-nw"
+			],
+			"name": "vpc-peering"
+		},
+		"avm": {
+			"build": {
+				"url": "http://filer.dev.eng.nutanix.com:8080/GoldImages/ISOs/coreos-qemu-1353.7.0.qcow2"
+			},
+			"hardware": {
+				"ram": "16G",
+				"scsi_size_container_volumes": "128G",
+				"scsi_size_docker": "128G",
+				"scsi_size_swap": "16G",
+				"vcpus": "8"
+			},
+			"is_new": true,
+			"network": {
+				"vlan_id": 1
+			},
+			"type": "$AVM",
+			"provider": {
+				"host": "xi-cluster"
+			},
+			"dependencies": [
+				"xi-managed-network",
+				"xi-cluster",
+				"xi-nw",
+				"vpc-peering",
+				"pc_selfservice_postd",
+				"xi-calm",
+				"xi-pc"
+			],
+			"name": "avm"
+		},
+		"on-prem-pc-xi-pc-pairing": {
+			"type": "$PAIR_ELEMENTS",
+			"is_new": true,
+			"dependencies": [
+				"tdaas_pc",
+				"xi-pc",
+				"avm"
+			],
+			"pairing_elements": [
+				"tdaas_pc",
+				"xi-pc"
+			],
+			"name": "on-prem-pc-xi-pc-pairing"
+		},
+		"entity-creation": {
+			"type": "$ENTITY",
+			"dependencies": [
+				"tdaas_pc",
+				"xi-pc",
+				"on-prem-pc-xi-pc-pairing",
+				"tdaas_cluster",
+                "xi-cluster"
+			]
+		},
+		"vm-catagory": {
+			"dependencies": [
+				"tdaas_vpc",
+				"managed_network",
+				"tdaas_cluster",
+				"pe_reset_password",
+				"pe_post_deployment",
+				"registration_link_pe_1-_pc_1",
+				"tdaas_pc",
+				"pc_reset_password",
+				"pc_selfservice_postd",
+				"xi-nw",
+				"xi-cluster",
+				"xi-pc",
+				"xi-managed-network",
+				"xi-pe-pc-registration",
+				"xi-calm",
+				"vpc-peering",
+				"avm",
+				"on-prem-pc-xi-pc-pairing",
+				"entity-creation"
+			],
+			"type": "$CUSTOM_SCRIPT",
+			"tar_url": "https://storage.googleapis.com/testdrive-templates/td2leap/catagories/entrypoint.tar.gz"
+		},
+		"files-config": {
+			"dependencies": [
+				"pe_reset_password",
+				"files"
+			],
+			"type": "$CUSTOM_SCRIPT",
+			"tar_url": "https://github.com/lauramariel/TestDrive/raw/disable-files-alerts/files-phase-1/entrypoint.tar.gz"
+		}
+	},
+	"metadata": {
+		"name": "plugin-private-cloud-core",
+		"projects": [
+			"testdrive01"
+		],
+		"duration": 168,
+		"timezone": "Asia/Calcutta"
+	}
+}

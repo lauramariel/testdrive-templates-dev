@@ -1,0 +1,302 @@
+{
+	"resource_specs": {
+		"on-prem-nw": {
+			"region": "us-west1",
+			"type": "$NETWORK",
+			"subnet_range": "172.19.0.0/16",
+			"is_new": true,
+			"name": "on-prem-nw"
+		},
+		"on-prem-cluster": {
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"is_new": true,
+			"set_cluster_external_ip_address": true,
+			"type": "$NOS_CLUSTER",
+			"dependencies": [
+				"on-prem-nw"
+			],
+			"labels": {},
+			"provider": {
+				"host": "on-prem-nw"
+			},
+			"hardware": {
+				"min_ssd_count": 1,
+				"cluster_min_nodes": 1,
+				"min_host_gb_ram": 20,
+				"min_host_cpu_count": 8,
+				"svm_num_vcpus": 8,
+				"svm_gb_ram": 16
+			},
+			"software": {
+				"nos": {
+					"version": "euphrates-5-11-stable",
+					"build_type": "opt",
+					"build_url": "http://endor.dyn.nutanix.com/builds/nos-builds/master/1ce0a2fb9acdf27a89847662c5c0a42a395db41f/opt/tar/nutanix_installer_package-opt-master-1ce0a2fb9acdf27a89847662c5c0a42a395db41f.tar.gz",
+					"commit": "7d9581"
+				},
+				"hypervisor": {
+					"version": "20180802-209",
+					"build_url": "http://endor.dyn.nutanix.com/builds/ahv-builds/20170830.100789/host-bundle-el6.nutanix.20170830.100789.tar.gz",
+					"type": "kvm"
+				}
+			},
+			"name": "on-prem-cluster"
+		},
+		"on-prem-pe-pc-registration": {
+			"dependencies": [
+				"on-prem-nw",
+				"on-prem-pc",
+				"on-prem-cluster"
+			],
+			"type": "$REGISTER_PE_PC",
+			"name": "on-prem-pe-pc-registration"
+		},
+		"on-prem-pc": {
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"labels": {},
+			"is_new": true,
+			"hardware": {
+				"min_ram": 16,
+				"min_vcpus": 8
+			},
+			"dependencies": [
+				"on-prem-nw"
+			],
+			"provider": {
+				"host": "on-prem-nw"
+			},
+			"type": "$PRISM_CENTRAL",
+			"software": {
+				"prism_central": {
+					"build_url": "pc-upgrade-tars/nutanix_installer_package_pc-release-euphrates-5.11-stable-7d9581dabffc9bf074def3950d29841cfc0dce71.tar.gz"
+				}
+			},
+			"name": "on-prem-pc"
+		},
+		"on-prem-managed-network": {
+			"type": "$MANAGED_NETWORK",
+			"is_new": true,
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"networks": [{
+				"cidr": "172.31.0.0/24",
+				"vlan_id": 1,
+				"name": "default-net",
+				"virtual_ip": false
+			}],
+			"dependencies": [
+				"on-prem-cluster",
+				"on-prem-nw"
+			],
+			"name": "on-prem-managed-network"
+		},
+		"on-prem-calm": {
+			"type": "$POST_DEPLOYMENT",
+			"kind": "$ENABLE_CALM",
+			"dependencies": [
+				"on-prem-nw",
+				"on-prem-pc",
+				"on-prem-managed-network",
+				"on-prem-cluster",
+				"on-prem-pe-pc-registration"
+			],
+			"name": "on-prem-calm"
+		},
+		"xi-nw": {
+			"region": "us-west1",
+			"type": "$NETWORK",
+			"subnet_range": "172.20.0.0/16",
+			"is_new": true,
+			"name": "xi-nw"
+		},
+		"xi-cluster": {
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"is_new": true,
+			"set_cluster_external_ip_address": true,
+			"type": "$NOS_CLUSTER",
+			"dependencies": [
+				"xi-nw"
+			],
+			"labels": {},
+			"provider": {
+				"host": "xi-nw"
+			},
+			"hardware": {
+				"min_ssd_count": 1,
+				"cluster_min_nodes": 1,
+				"min_host_gb_ram": 20,
+				"min_host_cpu_count": 8,
+				"svm_num_vcpus": 8,
+				"svm_gb_ram": 16
+			},
+			"software": {
+				"nos": {
+					"version": "euphrates-5-11-stable",
+					"build_type": "opt",
+					"build_url": "http://endor.dyn.nutanix.com/builds/nos-builds/master/1ce0a2fb9acdf27a89847662c5c0a42a395db41f/opt/tar/nutanix_installer_package-opt-master-1ce0a2fb9acdf27a89847662c5c0a42a395db41f.tar.gz",
+					"commit": "7d9581"
+				},
+				"hypervisor": {
+					"version": "20180802-209",
+					"build_url": "http://endor.dyn.nutanix.com/builds/ahv-builds/20170830.100789/host-bundle-el6.nutanix.20170830.100789.tar.gz",
+					"type": "kvm"
+				}
+			},
+			"name": "xi-cluster"
+		},
+		"xi-pe-pc-registration": {
+			"dependencies": [
+				"xi-nw",
+				"xi-pc",
+				"xi-cluster"
+			],
+			"type": "$REGISTER_PE_PC",
+			"name": "xi-pe-pc-registration"
+		},
+		"xi-pc": {
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"labels": {},
+			"is_new": true,
+			"hardware": {
+				"min_ram": 16,
+				"min_vcpus": 8
+			},
+			"xi": {
+				"host": "xi-nw"
+			},
+			"dependencies": [
+				"xi-nw",
+				"xi-cluster"
+			],
+			"provider": {
+				"host": "xi-nw"
+			},
+			"type": "$PRISM_CENTRAL",
+			"software": {
+				"prism_central": {
+					"build_url": "pc-upgrade-tars/nutanix_installer_package_pc-release-euphrates-5.11-stable-7d9581dabffc9bf074def3950d29841cfc0dce71.tar.gz"
+				}
+			},
+			"name": "xi-pc"
+		},
+		"xi-managed-network": {
+			"type": "$MANAGED_NETWORK",
+			"is_new": true,
+			"zone": "us-west1-c",
+			"region": "us-west1",
+			"networks": [{
+				"cidr": "172.31.1.0/24",
+				"vlan_id": 1,
+				"name": "default-net",
+				"virtual_ip": false
+			}],
+			"dependencies": [
+				"xi-cluster",
+				"xi-nw"
+			],
+			"name": "xi-managed-network"
+		},
+		"xi-calm": {
+			"type": "$POST_DEPLOYMENT",
+			"kind": "$ENABLE_CALM",
+			"dependencies": [
+				"xi-nw",
+				"xi-pc",
+				"xi-managed-network",
+				"xi-cluster",
+				"xi-pe-pc-registration"
+			],
+			"name": "xi-calm"
+		},
+		"vpc-peering": {
+			"type": "$VPC_PEERING",
+			"dependencies": [
+				"on-prem-nw",
+				"xi-nw"
+			],
+			"name": "vpc-peering"
+		},
+		"avm": {
+			"build": {
+				"url": "http://filer.dev.eng.nutanix.com:8080/GoldImages/ISOs/coreos-qemu-1353.7.0.qcow2"
+			},
+			"hardware": {
+				"ram": "16G",
+				"scsi_size_container_volumes": "128G",
+				"scsi_size_docker": "128G",
+				"scsi_size_swap": "16G",
+				"vcpus": "8"
+			},
+			"is_new": true,
+			"network": {
+				"vlan_id": 1
+			},
+			"type": "$AVM",
+			"provider": {
+				"host": "xi-cluster"
+			},
+			"dependencies": [
+				"xi-managed-network",
+				"xi-cluster",
+				"xi-nw",
+				"vpc-peering",
+				"on-prem-calm",
+				"xi-calm",
+				"xi-pc"
+			],
+			"name": "avm"
+		},
+		"on-prem-pc-xi-pc-pairing": {
+			"type": "$PAIR_ELEMENTS",
+			"is_new": true,
+			"dependencies": [
+				"on-prem-pc",
+				"xi-pc",
+				"avm"
+			],
+			"pairing_elements": [
+				"on-prem-pc",
+				"xi-pc"
+			],
+			"name": "on-prem-pc-xi-pc-pairing"
+		},
+		"entity-creation": {
+			"type": "$ENTITY",
+			"dependencies": [
+				"on-prem-pc",
+				"xi-pc",
+				"on-prem-pc-xi-pc-pairing",
+				"on-prem-cluster",
+                "xi-cluster"
+			],
+			"name": "entity-creation"
+		},
+		"dns-on-prem": {
+			"type": "$DNS",
+			"dependencies": [
+				"on-prem-cluster",
+				"on-prem-pc"
+			],
+			"name": "dns-on-prem"
+		},
+		"dns-xi": {
+			"type": "$DNS",
+			"dependencies": [
+				"xi-cluster"
+			],
+			"name": "dns-xi"
+		}
+	},
+	"metadata": {
+		"name": "plugin-private-cloud-core",
+		"projects": [
+			"nutanix-testdrive-12"
+		],
+		"duration": 72,
+		"timezone": "Asia/Calcutta"
+	}
+}

@@ -1,0 +1,258 @@
+{
+    "resource_specs": {
+        "on-prem-nw": {
+            "region": "us-west1",
+            "type": "$NETWORK",
+            "subnet_range": "172.19.0.0/16",
+            "is_new": true
+        },
+        "site-a": {
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "is_new": true,
+            "set_cluster_external_ip_address": true,
+            "type": "$NOS_CLUSTER",
+            "dependencies": [
+                "on-prem-nw"
+            ],
+            "labels": {},
+            "provider": {
+                "host": "on-prem-nw"
+            },
+            "hardware": {
+                "min_ssd_count": 1,
+                "cluster_min_nodes": 1,
+                "min_host_gb_ram": 20,
+                "min_host_cpu_count": 8,
+                "svm_num_vcpus": 8,
+                "svm_gb_ram": 16
+            },
+            "software": {
+                "nos": {
+                    "version": "euphrates-5-11-stable",
+                    "build_type": "opt",
+                    "build_url": "http://endor.dyn.nutanix.com/builds/nos-builds/master/1ce0a2fb9acdf27a89847662c5c0a42a395db41f/opt/tar/nutanix_installer_package-opt-master-1ce0a2fb9acdf27a89847662c5c0a42a395db41f.tar.gz",
+                    "commit": "7d9581"
+                },
+                "hypervisor": {
+                    "version": "20180802-209",
+                    "build_url": "http://endor.dyn.nutanix.com/builds/ahv-builds/20170830.100789/host-bundle-el6.nutanix.20170830.100789.tar.gz",
+                    "type": "kvm"
+                }
+            }
+        },
+        "pe-pc": {
+            "dependencies": [
+                "on-prem-nw",
+                "pc",
+                "site-a"
+            ],
+            "type": "$REGISTER_PE_PC"
+        },
+        "pc": {
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "labels": {},
+            "is_new": true,
+            "hardware": {
+                "min_ram": 16,
+                "min_vcpus": 8
+            },
+            "dependencies": [
+                "on-prem-nw"
+            ],
+            "provider": {
+                "host": "on-prem-nw"
+            },
+            "type": "$PRISM_CENTRAL",
+            "software": {
+                "prism_central": {
+                    "build_url": "pc-upgrade-tars/nutanix_installer_package_pc-release-euphrates-5.11-stable-7d9581dabffc9bf074def3950d29841cfc0dce71.tar.gz"
+                }
+            }
+        },
+        "managednetwork": {
+            "type": "$MANAGED_NETWORK",
+            "is_new": true,
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "networks": [
+                {
+                    "cidr": "172.31.0.0/24",
+                    "vlan_id": 1,
+                    "name": "default-net",
+                    "virtual_ip": false
+                }
+            ],
+            "dependencies": [
+                "site-a",
+                "on-prem-nw"
+            ]
+        },
+        "calm": {
+            "type": "$POST_DEPLOYMENT",
+            "kind": "$ENABLE_CALM",
+            "dependencies": [
+                "on-prem-nw",
+                "pc",
+                "managednetwork",
+                "site-a",
+                "pe-pc"
+            ]
+        },
+        "secondary-nw": {
+            "region": "us-west1",
+            "type": "$NETWORK",
+            "subnet_range": "172.20.0.0/16",
+            "is_new": true
+        },
+        "site-b": {
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "is_new": true,
+            "set_cluster_external_ip_address": true,
+            "type": "$NOS_CLUSTER",
+            "dependencies": [
+                "secondary-nw"
+            ],
+            "labels": {},
+            "provider": {
+                "host": "secondary-nw"
+            },
+            "hardware": {
+                "min_ssd_count": 1,
+                "cluster_min_nodes": 1,
+                "min_host_gb_ram": 20,
+                "min_host_cpu_count": 8,
+                "svm_num_vcpus": 8,
+                "svm_gb_ram": 16
+            },
+            "software": {
+                "nos": {
+                    "version": "euphrates-5-11-stable",
+                    "build_type": "opt",
+                    "build_url": "http://endor.dyn.nutanix.com/builds/nos-builds/master/1ce0a2fb9acdf27a89847662c5c0a42a395db41f/opt/tar/nutanix_installer_package-opt-master-1ce0a2fb9acdf27a89847662c5c0a42a395db41f.tar.gz",
+                    "commit": "7d9581"
+                },
+                "hypervisor": {
+                    "version": "20180802-209",
+                    "build_url": "http://endor.dyn.nutanix.com/builds/ahv-builds/20170830.100789/host-bundle-el6.nutanix.20170830.100789.tar.gz",
+                    "type": "kvm"
+                }
+            }
+        },
+        "secondary-pe-secondary-pc": {
+            "dependencies": [
+                "secondary-nw",
+                "secondary-pc",
+                "site-b"
+            ],
+            "type": "$REGISTER_PE_PC"
+        },
+        "secondary-pc": {
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "labels": {},
+            "is_new": true,
+            "hardware": {
+                "min_ram": 16,
+                "min_vcpus": 8
+            },
+            "dependencies": [
+                "secondary-nw"
+            ],
+            "provider": {
+                "host": "secondary-nw"
+            },
+            "type": "$PRISM_CENTRAL",
+            "software": {
+                "prism_central": {
+                    "build_url": "pc-upgrade-tars/nutanix_installer_package_pc-release-euphrates-5.11-stable-7d9581dabffc9bf074def3950d29841cfc0dce71.tar.gz"
+                }
+            }
+        },
+        "secondary-managednetwork": {
+            "type": "$MANAGED_NETWORK",
+            "is_new": true,
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "networks": [
+                {
+                    "cidr": "10.20.0.0/24",
+                    "vlan_id": 1,
+                    "name": "default-net",
+                    "virtual_ip": false
+                },
+                {
+                    "cidr": "10.40.0.0/24",
+                    "vlan_id": 60,
+                    "name": "production"
+                },
+                {
+                    "cidr": "172.31.2.0/24",
+                    "vlan_id": 50,
+                    "name": "test"
+                }
+            ],
+            "dependencies": [
+                "site-b",
+                "secondary-nw"
+            ]
+        },
+        "secondary-calm": {
+            "type": "$POST_DEPLOYMENT",
+            "kind": "$ENABLE_CALM",
+            "dependencies": [
+                "secondary-nw",
+                "secondary-pc",
+                "secondary-managednetwork",
+                "site-b",
+                "secondary-pe-secondary-pc"
+            ]
+        },
+        "peering": {
+            "type": "$VPC_PEERING",
+            "dependencies": [
+                "on-prem-nw",
+                "secondary-nw"
+            ]
+        },
+        "pair_pc_pc": {
+            "type": "$PAIR_ELEMENTS",
+            "is_new": true,
+            "dependencies": [
+                "pc",
+                "secondary-pc"
+            ],
+            "pairing_elements": [
+                "pc",
+                "secondary-pc"
+            ],
+            "secondary_site": "secondary-pc"
+        },
+        "entity_creation": {
+            "type": "$ENTITY",
+            "dependencies": [
+                "pc",
+                "site-a",
+                "pair_pc_pc"
+            ],
+            "entities": [
+                "image",
+                "vm",
+                "network",
+                "category",
+                "protection_policy",
+                "recovery_plan"
+            ]
+        }
+    },
+   "metadata": {
+      "name": "plugin-private-cloud-core",
+      "projects": [
+          "testdrive01"
+      ],
+      "duration": 168,
+      "timezone": "Asia/Calcutta"
+  }
+}

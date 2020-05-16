@@ -38,9 +38,9 @@
 				"host": "tdaas_vpc"
 			},
 			"hardware": {
-				"min_ssd_count": 4,
+				"min_ssd_count": 1,
 				"cluster_min_nodes": 1,
-				"min_host_gb_ram": 81,
+				"min_host_gb_ram": 165,
 				"min_host_cpu_count": 30,
 				"svm_num_vcpus": 8,
 				"svm_gb_ram": 16
@@ -353,14 +353,28 @@
 			"type": "$CUSTOM_SCRIPT",
 			"tar_url": "https://storage.googleapis.com/testdrive-templates/files/entrypoint.tar.gz"
 		},
-		"objects-deploy": {
+        "objects-deploy": {
             "dependencies": [
+                "tdaas_vpc",
+                "managed_network",
                 "tdaas_cluster",
                 "pe_reset_password",
-                "managed_network",
+                "pe_post_deployment",
+                "registration_link_pe_1-_pc_1",
                 "tdaas_pc",
-                "on_prem_calm",
-                "pc_reset_password"
+                "pc_reset_password",
+                "pc_selfservice_postd",
+                "xi-nw",
+                "xi-cluster",
+                "xi-pc",
+                "xi-managed-network",
+                "xi-pe-pc-registration",
+                "xi-calm",
+                "vpc-peering",
+                "avm",
+                "on-prem-pc-xi-pc-pairing",
+                "entity-creation",
+                "on-prem-calm"
             ],
             "tar_url": "https://storage.googleapis.com/testdrive-templates/library/release/objects/entrypoint.tar.gz",
             "type": "$CUSTOM_SCRIPT"

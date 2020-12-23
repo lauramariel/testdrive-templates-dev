@@ -1,0 +1,92 @@
+{
+    "resource_specs": {
+        "$GCP": {
+            "tdaas_vpc": {
+                "region": "us-east1",
+                "dependencies": [],
+                "type": "$NETWORK",
+                "is_new": true,
+                "name": "tdaas_vpc"
+            },
+            "tdaas_cluster": {
+                "name": "tdaas_cluster",
+                "zone": "us-east1-b",
+                "region": "us-east1",
+                "labels": {},
+                "is_new": true,
+                "hardware": {
+                    "cluster_min_nodes": 1,
+                    "min_ssd_count": 1,
+                    "min_host_cpu_count": 8,
+                    "svm_num_vcpus": 8,
+                    "min_host_gb_ram": 16,
+                    "svm_gb_ram": 16
+                },
+                "dependencies": [
+                    "tdaas_vpc"
+                ],
+                "set_cluster_external_ip_address": true,
+                "type": "$NOS_CLUSTER",
+                "provider": {
+                    "host": "tdaas_vpc"
+                },
+                "software": {
+                    "hypervisor": {
+                        "build_url": "http://endor.dyn.nutanix.com/builds/ahv-builds/20170830.100789/host-bundle-el6.nutanix.20170830.100789.tar.gz",
+                        "type": "kvm"
+                    },
+                    "nos": {
+                        "commit": "e4b871",
+                        "build_url": "http://endor.dyn.nutanix.com/builds/nos-builds/master/e4b871da4fd94be0cf7cc138596353e4de77860d/opt/tar/nutanix_installer_package-opt-master-e4b871da4fd94be0cf7cc138596353e4de77860d.tar.gz",
+                        "version": "euphrates-5-17-1-5-stable",
+                        "build_type": "opt"
+                    }
+                }
+            }
+        },
+        "$ONPREM": {
+            "tdaas_nested": {
+                "name": "nested-trial",
+                "type": "$NESTED_AHV",
+                "create_images": false,
+                "network": {
+                    "vlan_id": 0,
+                    "name": "trial"
+                },
+                "constraints": {
+                    "min_nodes": 1,
+                    "cvm": {
+                        "cpu": 16,
+                        "ram": "24G",
+                        "disk": {
+                            "ssd": [
+                                "100G"
+                            ],
+                            "hdd": [
+                                "100G"
+                            ]
+                        }
+                    },
+                    "host": {
+                        "cpu": 16,
+                        "ram": "24G"
+                    }
+                },
+                "skip_prechecks": true                
+            }
+        }
+    },
+    "metadata": {
+        "duration": 1,
+        "gcp_projects": [
+            "nutanix-testdrive-10"
+        ],
+        "name": "test-deployment",
+        "timezone": "Asia/Kolkata",
+        "pool_id": "5fa3ade3ef7891e28111c700",
+        "priority": [
+            "$ONPREM",
+            "$GCP"
+        ]
+    }
+}

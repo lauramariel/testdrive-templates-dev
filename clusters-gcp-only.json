@@ -1,0 +1,243 @@
+{
+    "resource_specs": {
+        "tdaas_vpc": {
+            "region": "us-west1",
+            "dependencies": [],
+            "type": "$NETWORK",
+            "is_new": true
+        },
+        "SanJose_Primary": {
+            "labels": {},
+            "set_cluster_external_ip_address": true,
+            "is_new": true,
+            "hardware": {
+                "persistent_hdd": {
+                    "count_per_node": 1
+                },
+                "cluster_min_nodes": 1,
+                "svm_num_vcpus": 8,
+                "min_host_cpu_count": 16,
+                "min_host_gb_ram": 104,
+                "svm_gb_ram": 16
+            },
+            "dependencies": [
+                "tdaas_vpc"
+            ],
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "provider": {
+                "host": "tdaas_vpc"
+            },
+            "type": "$NOS_CLUSTER",
+            "software": {
+                "hypervisor": {
+                    "build_url": "http://endor.dyn.nutanix.com/builds/ahv-builds/20170830.100789/host-bundle-el6.nutanix.20170830.100789.tar.gz",
+                    "type": "kvm"
+                },
+                "nos": {
+                    "commit": "da64a4",
+                    "build_url": "http://endor.dyn.nutanix.com/builds/nos-builds/master/1ce0a2fb9acdf27a89847662c5c0a42a395db41f/opt/tar/nutanix_installer_package-opt-master-1ce0a2fb9acdf27a89847662c5c0a42a395db41f.tar.gz",
+                    "version": "euphrates-5-17-1-5-stable",
+                    "build_type": "opt"
+                }
+            }
+        },
+        "cloud-us-west": {
+            "labels": {},
+            "set_cluster_external_ip_address": true,
+            "is_new": true,
+            "hardware": {
+                "persistent_hdd": {
+                    "count_per_node": 1
+                },
+                "cluster_min_nodes": 1,
+                "svm_num_vcpus": 8,
+                "min_host_cpu_count": 16,
+                "min_host_gb_ram": 104,
+                "svm_gb_ram": 16
+            },
+            "dependencies": [
+                "tdaas_vpc"
+            ],
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "provider": {
+                "host": "tdaas_vpc"
+            },
+            "type": "$NOS_CLUSTER",
+            "software": {
+                "hypervisor": {
+                    "build_url": "http://endor.dyn.nutanix.com/builds/ahv-builds/20170830.100789/host-bundle-el6.nutanix.20170830.100789.tar.gz",
+                    "type": "kvm"
+                },
+                "nos": {
+                    "commit": "da64a4",
+                    "build_url": "http://endor.dyn.nutanix.com/builds/nos-builds/master/1ce0a2fb9acdf27a89847662c5c0a42a395db41f/opt/tar/nutanix_installer_package-opt-master-1ce0a2fb9acdf27a89847662c5c0a42a395db41f.tar.gz",
+                    "version": "euphrates-5-17-1-5-stable",
+                    "build_type": "opt"
+                }
+            }
+        },
+        "tdaas_pc": {
+            "hardware": {
+                "min_ram": 24,
+                "min_vcpus": 8
+            },
+            "dependencies": [
+                "tdaas_vpc"
+            ],
+            "zone": "us-west1-c",
+            "provider": {
+                "host": "tdaas_vpc"
+            },
+            "region": "us-west1",
+            "labels": {},
+            "type": "$PRISM_CENTRAL",
+            "software": {
+                "prism_central": {
+                    "build_url": "pc-upgrade-tars/nutanix_installer_package_pc-release-euphrates-5.17.1.1-stable-dbca19a4e2b89f25bc3cf58d72ef59bb23d0141a-x86_64.tar.gz"
+                }
+            }
+        },
+        "enable_calm": {
+            "kind": "$ENABLE_CALM",
+            "dependencies": [
+                "tdaas_pc"
+            ],
+            "type": "$POST_DEPLOYMENT"
+        },
+        "register_aws_cluster_to_gcp_pc": {
+            "dependencies": [
+                "tdaas_pc",
+                "cloud-us-west"
+            ],
+            "type": "$REGISTER_PE_PC"
+        },
+        "register_on_prem_cluster_to_gcp_pc": {
+            "dependencies": [
+                "tdaas_vpc",
+                "tdaas_pc",
+                "SanJose_Primary"
+            ],
+            "type": "$REGISTER_PE_PC"
+        },
+        "managed_network": {
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "labels": {},
+            "dependencies": [
+                "SanJose_Primary",
+                "tdaas_vpc"
+            ],
+            "type": "$MANAGED_NETWORK",
+            "networks": [
+                {
+                    "cidr": "10.1.40.0/24",
+                    "name": "primary_production",
+                    "vlan_id": "60"
+                },
+                {
+                    "cidr": "10.1.20.0/24",
+                    "name": "primary_test",
+                    "vlan_id": "50"
+                }
+            ]
+        },
+        "managed_network_aws": {
+            "zone": "us-west1-c",
+            "region": "us-west1",
+            "labels": {},
+            "dependencies": [
+                "cloud-us-west",
+                "tdaas_vpc"
+            ],
+            "type": "$MANAGED_NETWORK",
+            "networks": [
+                {
+                    "cidr": "10.2.40.0/24",
+                    "name": "secondary_production",
+                    "vlan_id": "60"
+                },
+                {
+                    "cidr": "10.2.20.0/24",
+                    "name": "secondary_test",
+                    "vlan_id": "50"
+                }
+            ]
+        },
+        "leap_entities": {
+            "self_az": true,
+            "entities": [
+                "image",
+                "vm",
+                "category",
+                "protection_policy",
+                "recovery_plan"
+            ],
+            "dependencies": [
+                "register_aws_cluster_to_gcp_pc",
+                "register_on_prem_cluster_to_gcp_pc",
+                "SanJose_Primary",
+                "cloud-us-west",
+                "tdaas_pc",
+                "managed_network_aws",
+                "managed_network"
+            ],
+            "primary_site": {
+                "pc_resource": "tdaas_pc",
+                "pe_resource": "SanJose_Primary"
+            },
+            "secondary_site": {
+                "pc_resource": "tdaas_pc",
+                "pe_resource": "cloud-us-west"
+            },
+            "type": "$ENTITY"
+        },
+        "pc_reset_password":{
+            "dependencies":[
+               "tdaas_vpc",
+               "register_aws_cluster_to_gcp_pc",
+               "register_on_prem_cluster_to_gcp_pc",
+               "leap_entities",
+               "SanJose_Primary",
+               "cloud-us-west",
+               "managed_network",
+               "tdaas_pc",
+               "enable_calm"
+            ],
+            "type":"$POST_DEPLOYMENT",
+            "kind":"$RESET_PRISM_PASS",
+            "kwargs":{
+               "target":{
+                  "res_name":"tdaas_pc"
+               }
+            }
+        },
+         "pe_reset_password":{
+            "dependencies":[
+               "tdaas_vpc",
+               "register_aws_cluster_to_gcp_pc",
+               "register_on_prem_cluster_to_gcp_pc",
+               "leap_entities",
+               "SanJose_Primary",
+               "cloud-us-west",
+               "managed_network",
+               "tdaas_pc",
+               "enable_calm"
+            ],
+            "type":"$POST_DEPLOYMENT",
+            "kind":"$RESET_PRISM_PASS",
+            "kwargs":{
+               "target":{
+                  "res_name":"SanJose_Primary"
+               }
+        }
+        }
+    },
+"metadata": {
+    "name": "modern-dc-testdrive",
+    "projects": ["nutanix-testdrive-10"],
+    "duration": 48,
+    "timezone": "Asia/Calcutta"
+  }
+}
